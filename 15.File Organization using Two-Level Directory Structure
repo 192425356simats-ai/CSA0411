@@ -1,0 +1,63 @@
+// two_level.c
+#include <stdio.h>
+#include <string.h>
+
+struct File {
+    char name[20];
+};
+
+struct Directory {
+    char user[20];
+    struct File files[10];
+    int file_count;
+};
+
+int main() {
+    struct Directory dir[5];
+    int dir_count = 0;
+    int choice;
+    char uname[20], fname[20];
+
+    while (1) {
+        printf("\n1. Create User\n2. Create File\n3. List Files\n4. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+        switch (choice) {
+            case 1:
+                printf("Enter user name: ");
+                scanf("%s", uname);
+                strcpy(dir[dir_count].user, uname);
+                dir[dir_count].file_count = 0;
+                dir_count++;
+                break;
+            case 2:
+                printf("Enter user name: ");
+                scanf("%s", uname);
+                int i, found = 0;
+                for (i = 0; i < dir_count; i++) {
+                    if (strcmp(dir[i].user, uname) == 0) {
+                        found = 1;
+                        break;
+                    }
+                }
+                if (found) {
+                    printf("Enter file name: ");
+                    scanf("%s", fname);
+                    strcpy(dir[i].files[dir[i].file_count++].name, fname);
+                } else {
+                    printf("User not found.\n");
+                }
+                break;
+            case 3:
+                for (int i = 0; i < dir_count; i++) {
+                    printf("User: %s\n", dir[i].user);
+                    for (int j = 0; j < dir[i].file_count; j++) {
+                        printf("  %s\n", dir[i].files[j].name);
+                    }
+                }
+                break;
+            case 4:
+                return 0;
+        }
+    }
+}
