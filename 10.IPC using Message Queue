@@ -1,0 +1,37 @@
+// msg_queue.c
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+
+#define MAX 100
+
+// structure for message queue
+struct msg_buffer {
+    long msg_type;
+    char msg_text[MAX];
+} message;
+
+int main() {
+    key_t key;
+    int msgid;
+
+    // Generate unique key
+    key = ftok("progfile", 65);
+
+    // Create message queue
+    msgid = msgget(key, 0666 | IPC_CREAT);
+    message.msg_type = 1;
+
+    printf("Enter a message: ");
+    fgets(message.msg_text, MAX, stdin);
+
+    // Send message
+    msgsnd(msgid, &message, sizeof(message), 0);
+    printf("Message sent.\n");
+
+    // Receive message
+    msgrcv(msgid, &message, sizeof(message), 1, 0);
+    printf("Received message: %s", message.msg_text);
+
+    // Destroy message queue
