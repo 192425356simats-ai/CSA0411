@@ -1,0 +1,91 @@
+#include <stdio.h>
+
+#define MAX 100
+
+typedef struct {
+    int pid;
+    int arrival_time;
+    int burst_time;
+    int remaining_time;
+    int priority;
+    int waiting_time;
+    int turnaround_time;
+    int completion_time;
+    int started;
+} Process;
+
+int main() {
+    Process p[MAX];
+    int n, time = 0, completed = 0;
+    int i, min_priority, current = -1;
+
+    printf("Enter number of processes: ");
+    scanf("%d", &n);
+
+    for (i = 0; i < n; i++) {
+        printf("\nEnter arrival time, burst time, and priority for process P[%d]: ", i + 1);
+        scanf("%d %d %d", &p[i].arrival_time, &p[i].burst_time, &p[i].priority);
+        p[i].pid = i + 1;
+        p[i].remaining_time = p[i].burst_time;
+        p[i].started = 0;
+    }
+
+    printf("\nGantt Chart:\n");
+
+    while (completed != n) {
+        min_priority = 9999;
+        int found = 0;
+
+        for (i = 0; i < n; i++) {
+            if (p[i].arrival_time <= time && p[i].remaining_time > 0 && p[i].priority < min_priority) {
+                min_priority = p[i].priority;
+                current = i;
+                found = 1;
+            }
+        }
+
+        if (!found) {
+            time++;
+            continue;
+        }
+
+        if (!p[current].started) {
+            p[current].started = 1;
+        }
+
+        printf("| P[%d] ", p[current].pid);
+
+        p[current].remaining_time--;
+        time++;
+
+        if (p[current].remaining_time == 0) {
+            completed++;
+            p[current].completion_time = time;
+            p[current].turnaround_time = p[current].completion_time - p[current].arrival_time;
+            p[current].waiting_time = p[current].turnaround_time - p[current].burst_time;
+        }
+    }
+
+    printf("|\n\n");
+
+    float total_wt = 0, total_tat = 0;
+
+    printf("PID\tAT\tBT\tPR\tCT\tTAT\tWT\n");
+    for (i = 0; i < n; i++) {
+        printf("P[%d]\t%d\t%d\t%d\t%d\t%d\t%d\n", 
+            p[i].pid, 
+            p[i].arrival_time, 
+            p[i].burst_time, 
+            p[i].priority, 
+            p[i].completion_time, 
+            p[i].turnaround_time, 
+            p[i].waiting_time);
+        total_wt += p[i].waiting_time;
+        total_tat += p[i].turnaround_time;
+    }
+
+    printf("\nAverage Waiting Time = %.2f", total_wt / n);
+    printf("\nAverage Turnaround Time = %.2f\n", total_tat / n);
+
+    return 0;
+}
