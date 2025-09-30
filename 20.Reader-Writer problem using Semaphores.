@@ -1,0 +1,74 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <unistd.h>
+#define NUM_READERS 5
+#define NUM_WRITERS 2
+int shared_data = 0;
+int reader_count = 0;
+sem_t mutex;    
+sem_t wrt;       
+void* reader(void* arg) {
+    int id = *(int*)arg;
+    while (1) {
+        // Entry section
+        sem_wait(&mutex);
+        reader_count++;
+        if (reader_count == 1) {
+            // first reader locks out writers
+            sem_wait(&wrt);
+        }
+        sem_post(&mutex);
+        printf("Reader %d: reading shared_data = %d\n", id, shared_data);
+        sleep(1);  
+        sem_wait(&mutex);
+        reader_count--;
+        if (reader_count == 0) {
+            // last reader lets writers in
+            sem_post(&wrt);
+        }
+        sem_post(&mutex);
+        sleep(rand() % 3 + 1);  // simulate time before next read
+    }
+    return NULL;
+}
+void* writer(void* arg) {
+    int id = *(int*)arg;
+    while (1) {
+        sem_wait(&wrt);
+        shared_data += 10;
+        printf("Writer %d: wrote shared_data = %d\n", id, shared_data);
+        sleep(2);  // simulate writing time
+        sem_post(&wrt);
+        sleep(rand() % 5 + 1);
+    }
+    return NULL;
+}int main() {
+    pthread_t rthreads[NUM_READERS], wthreads[NUM_WRITERS];
+    int r_ids[NUM_READERS], w_ids[NUM_WRITERS];
+    sem_init(&mutex, 0, 1);
+    sem_init(&wrt, 0, 1);
+    for (int i = 0; i < NUM_READERS; i++) {
+        r_ids[i] = i + 1;
+        if (pthread_create(&rthreads[i], NULL, reader, &r_ids[i]) != 0) {
+            perror("pthread_create reader");
+            exit(1);
+        }
+    }
+    for (int i = 0; i < NUM_WRITERS; i++) {
+        w_ids[i] = i + 1;
+        if (pthread_create(&wthreads[i], NULL, writer, &w_ids[i]) != 0) {
+            perror("pthread_create writer");
+            exit(1);
+        }
+    }
+    for (int i = 0; i < NUM_READERS; i++)
+        pthread_join(rthreads[i], NULL);
+    for (int i = 0; i < NUM_WRITERS; i++)
+        pthread_join(wthreads[i], NULL);
+    sem_destroy(&mutex);
+    sem_destroy(&wrt);
+
+    return 0;
+}
