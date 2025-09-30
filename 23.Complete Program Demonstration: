@@ -1,0 +1,106 @@
+#include <stdio.h>
+#include <fcntl.h>    
+#include <unistd.h>   
+#include <sys/stat.h> 
+#include <dirent.h>  
+#include <string.h>
+#include <stdlib.h>void demo_fcntl(const char *filename) {
+    int fd = open(filename, O_RDONLY);
+    if (fd < 0) {
+        perror("open");
+        return;
+    }
+ printf("\n-- fcntl demo --\n");
+    int flags = fcntl(fd, F_GETFL);
+    if (flags == -1) {
+        perror("fcntl get");
+        close(fd);
+        return;
+    }
+ printf("Current file status flags: 0x%x\n", flags);
+    int new_flags = flags | O_NONBLOCK;
+    if (fcntl(fd, F_SETFL, new_flags) == -1) {
+        perror("fcntl set");
+        close(fd);
+        return;
+    }
+    printf("O_NONBLOCK flag set.\n");
+
+    close(fd);
+}
+
+void demo_lseek(const char *filename) {
+    int fd = open(filename, O_RDONLY);
+    if (fd < 0) {
+        perror("open");
+        return;
+    }
+printf("\n-- lseek demo --\n");
+    off_t offset = lseek(fd, 10, SEEK_SET);
+    if (offset == (off_t)-1) {
+        perror("lseek");
+        close(fd);
+        return;
+    }
+    printf("File offset set to %lld\n", (long long)offset);
+
+    char buf[100];
+    ssize_t n = read(fd, buf, sizeof(buf)-1);
+    if (n < 0) {
+        perror("read");
+        close(fd);
+        return;
+    }
+    buf[n] = '\0';
+    printf("Read %zd bytes from offset 10:\n%s\n", n, buf);
+
+    close(fd);
+}
+
+void demo_stat(const char *filename) {
+    struct stat st;
+    printf("\n-- stat demo --\n");
+
+    if (stat(filename, &st) == -1) {
+        perror("stat");
+        return;
+    }
+
+    printf("File: %s\n", filename);
+    printf("Size: %lld bytes\n", (long long)st.st_size);
+    printf("Permissions: %o\n", st.st_mode & 0777);
+    printf("Owner UID: %d\n", st.st_uid);
+    printf("Last modification time: %ld\n", st.st_mtime);
+}
+
+void demo_dir(const char *dirpath) {
+    DIR *dir = opendir(dirpath);
+    if (!dir) {
+        perror("opendir");
+        return;
+    }
+printf("\n-- opendir & readdir demo --\n");
+    printf("Contents of directory '%s':\n", dirpath);
+
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != NULL) {
+        printf("  %s\n", entry->d_name);
+    }
+    closedir(dir);
+}
+
+int main(int argc, char *argv[]) {
+    if (argc < 3) {
+        printf("Usage: %s <filename> <directory>\n", argv[0]);
+        return 1;
+    }
+ const char *filename = argv[1];
+    const char *directory = argv[2];
+
+    demo_fcntl(filename);
+    demo_lseek(filename);
+    demo_stat(filename);
+    demo_dir(directory);
+
+    return 0;
+}
