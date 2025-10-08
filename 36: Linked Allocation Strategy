@@ -1,0 +1,57 @@
+#include <stdio.h>
+
+#define MAX_BLOCKS 100
+
+struct Block {
+    int data;
+    int next; // -1 indicates end of file
+};
+
+int main() {
+    struct Block disk[MAX_BLOCKS];
+    int used[MAX_BLOCKS] = {0}; // Track used blocks
+
+    int n, i, block;
+    int start = -1, end = -1, prev = -1;
+
+    printf("Enter the number of blocks in the file: ");
+    scanf("%d", &n);
+
+    for (i = 0; i < n; i++) {
+        printf("Enter block number %d: ", i + 1);
+        scanf("%d", &block);
+
+        if (block < 0 || block >= MAX_BLOCKS || used[block]) {
+            printf("Invalid or already allocated block. Try again.\n");
+            i--;
+            continue;
+        }
+
+        used[block] = 1;
+        disk[block].data = block;
+        disk[block].next = -1;
+
+        if (start == -1) {
+            start = block;
+        } else {
+            disk[prev].next = block;
+        }
+        prev = block;
+    }
+    end = prev;
+
+    // Print the linked list
+    printf("File allocated using Linked Allocation.\n");
+    printf("Start block: %d\n", start);
+    printf("End block: %d\n", end);
+    printf("Block chain: ");
+
+    int current = start;
+    while (current != -1) {
+        printf("%d -> ", disk[current].data);
+        current = disk[current].next;
+    }
+    printf("NULL\n");
+
+    return 0;
+}
