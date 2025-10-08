@@ -1,0 +1,45 @@
+#include <stdio.h>
+#include <string.h>
+
+// Define permission bits
+#define READ  4
+#define WRITE 2
+#define EXEC  1
+
+// Define user types
+typedef enum {
+    OWNER,
+    GROUP,
+    OTHERS
+} UserType;
+
+// Struct to hold file permissions
+struct File {
+    char name[100];
+    int owner_perm;  // permission bits for owner (r=4, w=2, x=1)
+    int group_perm;  // permission bits for group
+    int others_perm; // permission bits for others
+    char owner[50];
+    char group[50];
+};
+
+// Function to check permission
+int has_permission(struct File f, UserType user_type, int perm) {
+    int user_perm = 0;
+
+    switch (user_type) {
+        case OWNER:
+            user_perm = f.owner_perm;
+            break;
+        case GROUP:
+            user_perm = f.group_perm;
+            break;
+        case OTHERS:
+            user_perm = f.others_perm;
+            break;
+    }
+
+    return (user_perm & perm) == perm;
+}
+
+// Helper function to print pe
