@@ -1,0 +1,52 @@
+#include <stdio.h>
+
+#define MAX_BLOCKS 100
+#define MAX_INDEX_ENTRIES 10
+
+int main() {
+    int disk[MAX_BLOCKS] = {0}; // 0: free, 1: allocated
+    int indexBlock, i, n, block;
+
+    printf("Enter the index block number: ");
+    scanf("%d", &indexBlock);
+
+    if (disk[indexBlock] == 1) {
+        printf("Index block already allocated.\n");
+        return 1;
+    }
+
+    disk[indexBlock] = 1; // Allocate index block
+
+    printf("Enter number of blocks needed for the file: ");
+    scanf("%d", &n);
+
+    if (n > MAX_INDEX_ENTRIES) {
+        printf("Maximum index entries exceeded (%d).\n", MAX_INDEX_ENTRIES);
+        return 1;
+    }
+
+    int indexEntries[n];
+
+    for (i = 0; i < n; i++) {
+        printf("Enter block number %d: ", i + 1);
+        scanf("%d", &block);
+
+        if (disk[block] == 0) {
+            disk[block] = 1;
+            indexEntries[i] = block;
+        } else {
+            printf("Block %d already allocated. Try again.\n", block);
+            i--;
+        }
+    }
+
+    printf("File allocated using Indexed Allocation.\n");
+    printf("Index Block: %d\n", indexBlock);
+    printf("Blocks Allocated: ");
+    for (i = 0; i < n; i++) {
+        printf("%d ", indexEntries[i]);
+    }
+    printf("\n");
+
+    return 0;
+}
